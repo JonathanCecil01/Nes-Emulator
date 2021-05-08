@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.17)
+project(NES)
+include_directories("./include")
+file(GLOB_RECURSE source "src/*.cpp")
+add_library("CPU6502" STATIC ${source})
+add_executable("NES" "main.cpp")
+target_link_libraries("NES" "CPU6502")

@@ -12,7 +12,10 @@ add_library("CPU6502" STATIC
             "src/bus.cpp" "include/bus.hpp"
             "src/catridge.cpp" "include/catridge.hpp"
             "src/cpu6502.cpp" "include/cpu6502.hpp"
-            "src/ppu2C02.cpp" "include/ppu2C02.hpp" "include/header.hpp" "include/mapper.hpp" "src/mapper.cpp" "include/mapper_000.h" "src/mapper_000.cpp")
+            "src/ppu2C02.cpp" "include/ppu2C02.hpp" 
+            "include/header.hpp" 
+            "include/mapper.hpp" "src/mapper.cpp" 
+            "include/mapper_000.hpp" "src/mapper_000.cpp")
 
 add_executable("NES_CPU" "cpu_test.cpp")
 add_executable("OLC" "olc_example.cpp")

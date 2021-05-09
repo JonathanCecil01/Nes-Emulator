@@ -148,7 +148,7 @@ public:
 		{
 			do
 			{
-				nes.cpu.Clock();
+				nes.cpu.clock();
 			} 
 			while (!nes.cpu.complete());
 		}

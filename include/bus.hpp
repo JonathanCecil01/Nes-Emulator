@@ -18,7 +18,7 @@ public:
     CPU6502 cpu; // CPU
     PPU2C02 ppu; // PPU
     std::array<u8, 2 * 1024> CPURam; // RAM
-    std::shared_ptr<Catridge> catridge;
+    std::shared_ptr<Catridge> cart;
 
     void CPUWrite(u16 addr, u8 data);
     u8 CPURead(u16 addr, bool readOnly = false);

@@ -75,7 +75,7 @@ u8 PPU2C02::PPURead(u16 addr, bool readOnly)
 	u8 data = 0x00;
 	addr &= 0x3FFF;
 
-	if (catridge->PPURead(addr, readOnly)) {
+	if (catridge->PPURead(addr, data)) {
 
 	}
 

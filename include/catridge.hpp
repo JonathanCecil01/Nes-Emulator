@@ -2,7 +2,7 @@
 #define CATRIDGE_HPP
 
 #include "header.hpp"
-#include "mapper_000.h"
+#include "mapper_000.hpp"
 
 class Catridge {
 
@@ -12,9 +12,9 @@ private:
 	std::vector<u8> PRGMEM;
 	std::vector<u8> CHRMEM;
 
-	u8 mapperID = 0;
-	u8 noPRGbanks = 0;
-	u8 noCHRbanks = 0;
+	u8 mapperID;
+	u8 noPRGbanks;
+	u8 noCHRbanks;
 
 	std::shared_ptr<Mapper> mapper;
 

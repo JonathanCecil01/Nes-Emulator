@@ -23,7 +23,7 @@ Catridge::Catridge(const std::string& fileName)
 
 	std::ifstream ifs;
 	ifs.open(fileName, std::ifstream::binary);
-	if (ifs.open()) {
+	if (ifs.is_open()) {
 	
 		ifs.read((char*)&header, sizeof(iNESHeader));
 	
@@ -42,11 +42,11 @@ Catridge::Catridge(const std::string& fileName)
 
 			noPRGbanks = header.PRGRomChunks;
 			PRGMEM.resize(noPRGbanks * 16 * 1024);
-			ifs.read((char*)&PRGMEM.data(), PRGMEM.size());
+			ifs.read((char*)PRGMEM.data(), PRGMEM.size());
 
 			noCHRbanks = header.CHRRomChunks;
 			CHRMEM.resize(noCHRbanks * 8 * 1024);
-			ifs.read((char*)&CHRMEM.data(), CHRMEM.size());
+			ifs.read((char*)CHRMEM.data(), CHRMEM.size());
 
 
 
@@ -58,7 +58,7 @@ Catridge::Catridge(const std::string& fileName)
 		switch (mapperID) {
 
 		case 0:
-			mapper = std::shared_ptr<Mapper_000>(noPRGBanks, noCHRbanks);
+			mapper = std::make_shared<Mapper_000>(noPRGbanks, noCHRbanks);
 			break;
 
 		}
@@ -78,7 +78,7 @@ bool Catridge::CPUWrite(u16 addr, u8 data)
 	uint32_t mapped_addr = 0;
 	if (mapper->cpuMapRead(addr, mapped_addr))
 	{
-		vPRGMemory[mapped_addr] = data;
+		PRGMEM[mapped_addr] = data;
 		return true;
 	}
 
@@ -90,7 +90,7 @@ bool Catridge::CPURead(u16 addr, u8 &data)
 	uint32_t mapped_addr = 0;
 	if (mapper->cpuMapRead(addr, mapped_addr))
 	{
-		data = vPRGMemory[mapped_addr];
+		data = PRGMEM[mapped_addr];
 		return true;
 	}
 
@@ -100,9 +100,9 @@ bool Catridge::CPURead(u16 addr, u8 &data)
 bool Catridge::PPUWrite(u16 addr, u8 data)
 {
 	uint32_t mapped_addr = 0;
-	if (pMapper->ppuMapRead(addr, mapped_addr))
+	if (mapper->ppuMapRead(addr, mapped_addr))
 	{
-		vCHRMemory[mapped_addr] = data;
+		CHRMEM[mapped_addr] = data;
 		return true;
 	}
 
@@ -113,9 +113,9 @@ bool Catridge::PPURead(u16 addr, u8 &data)
 {
 
 	uint32_t mapped_addr = 0;
-	if (pMapper->ppuMapRead(addr, mapped_addr))
+	if (mapper->ppuMapRead(addr, mapped_addr))
 	{
-		data = vCHRMemory[mapped_addr];
+		data = CHRMEM[mapped_addr];
 		return true;
 	}
 

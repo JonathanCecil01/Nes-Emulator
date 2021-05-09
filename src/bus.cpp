@@ -15,7 +15,7 @@ u8 Bus::CPURead(u16 addr, bool readOnly) {
 
     u8 data = 0x00;
 
-    if (cartidge->CPURead(addr, readOnly)){
+    if (cart->CPURead(addr, data)){
 
     }else if (addr >= 0x0000 && addr <= 0x1FFF)
         data = CPURam[addr & 0x07FF];
@@ -29,7 +29,7 @@ u8 Bus::CPURead(u16 addr, bool readOnly) {
 
 void Bus::CPUWrite(u16 addr, u8 data){
 
-    if (cartidge->CPUWrite(addr, data)) {
+    if (cart->CPUWrite(addr, data)) {
 
     }
     else if (addr >= 0x0000 && addr <= 0x1FFF)
@@ -56,6 +56,6 @@ void Bus::clock()
 
 void Bus::insertCatridge(const std::shared_ptr<Catridge>& catridge)
 {
-    this->catridge = catridge;
+    this->cart = catridge;
     ppu.connectCartidge(catridge);
 }

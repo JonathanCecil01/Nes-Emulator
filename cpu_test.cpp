@@ -33,7 +33,7 @@ public:
 			std::string sOffset = "$" + hex(nAddr, 4) + ":";
 			for (int col = 0; col < nColumns; col++)
 			{
-				sOffset += " " + hex(nes.read(nAddr, true), 2);
+				sOffset += " " + hex(nes.CPURead(nAddr, true), 2);
 				nAddr += 1;
 			}
 			DrawString(nRamX, nRamY, sOffset);
@@ -45,14 +45,14 @@ public:
 	{
 		std::string status = "STATUS: ";
 		DrawString(x , y , "STATUS:", olc::WHITE);
-		DrawString(x  + 64, y, "N", nes.cpu.status & Cpu6502::N ? olc::GREEN : olc::RED);
-		DrawString(x  + 80, y , "V", nes.cpu.status & Cpu6502::V ? olc::GREEN : olc::RED);
-		DrawString(x  + 96, y , "-", nes.cpu.status & Cpu6502::U ? olc::GREEN : olc::RED);
-		DrawString(x  + 112, y , "B", nes.cpu.status & Cpu6502::B ? olc::GREEN : olc::RED);
-		DrawString(x  + 128, y , "D", nes.cpu.status & Cpu6502::D ? olc::GREEN : olc::RED);
-		DrawString(x  + 144, y , "I", nes.cpu.status & Cpu6502::I ? olc::GREEN : olc::RED);
-		DrawString(x  + 160, y , "Z", nes.cpu.status & Cpu6502::Z ? olc::GREEN : olc::RED);
-		DrawString(x  + 178, y , "C", nes.cpu.status & Cpu6502::C ? olc::GREEN : olc::RED);
+		DrawString(x  + 64, y, "N", nes.cpu.status & CPU6502::N ? olc::GREEN : olc::RED);
+		DrawString(x  + 80, y , "V", nes.cpu.status & CPU6502::V ? olc::GREEN : olc::RED);
+		DrawString(x  + 96, y , "-", nes.cpu.status & CPU6502::U ? olc::GREEN : olc::RED);
+		DrawString(x  + 112, y , "B", nes.cpu.status & CPU6502::B ? olc::GREEN : olc::RED);
+		DrawString(x  + 128, y , "D", nes.cpu.status & CPU6502::D ? olc::GREEN : olc::RED);
+		DrawString(x  + 144, y , "I", nes.cpu.status & CPU6502::I ? olc::GREEN : olc::RED);
+		DrawString(x  + 160, y , "Z", nes.cpu.status & CPU6502::Z ? olc::GREEN : olc::RED);
+		DrawString(x  + 178, y , "C", nes.cpu.status & CPU6502::C ? olc::GREEN : olc::RED);
 		DrawString(x , y + 10, "PC: $" + hex(nes.cpu.PC, 4));
 		DrawString(x , y + 20, "A: $" +  hex(nes.cpu.a, 2) + "  [" + std::to_string(nes.cpu.a) + "]");
 		DrawString(x , y + 30, "X: $" +  hex(nes.cpu.x, 2) + "  [" + std::to_string(nes.cpu.x) + "]");
@@ -122,12 +122,12 @@ public:
 		{
 			std::string b;
 			ss >> b;
-			nes.ram[nOffset++] = (uint8_t)std::stoul(b, nullptr, 16);
+			nes.CPURam[nOffset++] = (uint8_t)std::stoul(b, nullptr, 16);
 		}
 
 		// Set Reset Vector
-		nes.ram[0xFFFC] = 0x00;
-		nes.ram[0xFFFD] = 0x80;
+		nes.CPURam[0xFFFC] = 0x00;
+		nes.CPURam[0xFFFD] = 0x80;
 
 		// Dont forget to set IRQ and NMI vectors if you want to play with those
 				

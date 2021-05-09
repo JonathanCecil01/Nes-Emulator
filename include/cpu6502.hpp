@@ -1,11 +1,7 @@
 #ifndef CPU6502_HPP
 #define CPU6502_HPP
 
-#include <cstdint>
-#include <string>
-#include <vector>
-#include <map>
-
+#include "header.hpp"
 #include "bus.hpp"
 
 class Bus;
@@ -26,12 +22,12 @@ public:
         N = (1 << 7)  // Negative
     };
 
-    uint8_t status; // Status Register
-    uint8_t a;      // Accumulator Register
-    uint8_t x;      // X Register
-    uint8_t y;      // Y Register
-    uint8_t SP;     // Stack Pointer
-    uint16_t PC;    // Program Counter
+    u8 status; // Status Register
+    u8 a;      // Accumulator Register
+    u8 x;      // X Register
+    u8 y;      // Y Register
+    u8 SP;     // Stack Pointer
+    u8 PC;    // Program Counter
 
 public:
     CPU6502();
@@ -40,7 +36,7 @@ public:
     void reset();	// Resets the CPU to default
 	void irq();		// Interrupt Request - Executes an instruction at a specific location
 	void nmi();		// Non-Maskable Interrupt Request - As above, but cannot be disabled
-	void Clock();   // Performs a clock cycle
+	void clock();   // Performs a clock cycle
 
     void ConnectBus(Bus *bus);
     
@@ -55,28 +51,28 @@ private:
     
     Bus *bus = nullptr;
 
-    uint8_t read(uint16_t a);
-    void write(uint16_t a, uint8_t d);
+    u8 read(u16 a);
+    void write(u16 a, u8 d);
 
     void setFlag(FLAGS f, bool v);
-    uint8_t getFlag(FLAGS f);
+    u8 getFlag(FLAGS f);
 
-    uint8_t fetched;
-    uint16_t temp;
-    uint16_t addr;
-    uint16_t addr_rel;
-    uint8_t opcode;
-    uint8_t cycles;
-    uint8_t cycles_count;
+    u8 fetched;
+    u16 temp;
+    u16 addr;
+    u16 addr_rel;
+    u8 opcode;
+    u8 cycles;
+    u8 cycles_count;
 
-    uint8_t fetch(); // Fetches the memory of a address given by addr
+    u8 fetch(); // Fetches the memory of a address given by addr
 
     struct INSTRUCTION
 	{
 		std::string name;		
-		uint8_t     (CPU6502::*op)(void) = nullptr;
-		uint8_t     (CPU6502::*ad)(void) = nullptr;
-		uint8_t     cycles = 0;
+        u8(CPU6502::*op)(void) = nullptr;
+        u8(CPU6502::*ad)(void) = nullptr;
+        u8     cycles = 0;
 	};
 
 	std::vector<INSTRUCTION> lookup;
@@ -84,103 +80,103 @@ private:
 private:
 
     // Addressing Modes - 12
-    uint8_t IMP();
-    uint8_t IMM();
-    uint8_t ZP0();
-    uint8_t ZPX();
-    uint8_t ZPY();
-    uint8_t REL();
-    uint8_t ABS();
-    uint8_t ABX();
-    uint8_t ABY();
-    uint8_t IND();
-    uint8_t IZX();
-    uint8_t IZY();
+    u8 IMP();
+    u8 IMM();
+    u8 ZP0();
+    u8 ZPX();
+    u8 ZPY();
+    u8 REL();
+    u8 ABS();
+    u8 ABX();
+    u8 ABY();
+    u8 IND();
+    u8 IZX();
+    u8 IZY();
 
 private:
 
     // Instruction Set - 56
 
     // Load / Store Operations - 6
-    uint8_t LDA();
-    uint8_t LDX();
-    uint8_t LDY();
-    uint8_t STA();
-    uint8_t STX();
-    uint8_t STY();
+    u8 LDA();
+    u8 LDX();
+    u8 LDY();
+    u8 STA();
+    u8 STX();
+    u8 STY();
 
     // Resgister Transfers - 4
-    uint8_t TAX();
-    uint8_t TAY();
-    uint8_t TXA();
-    uint8_t TYA();
+    u8 TAX();
+    u8 TAY();
+    u8 TXA();
+    u8 TYA();
 
     // Stack Operations - 6
-    uint8_t TSX();
-    uint8_t TXS();
-    uint8_t PHA();
-    uint8_t PHP();
-    uint8_t PLA();
-    uint8_t PLP();
+    u8 TSX();
+    u8 TXS();
+    u8 PHA();
+    u8 PHP();
+    u8 PLA();
+    u8 PLP();
 
     // Logical - 4
-    uint8_t AND();
-    uint8_t EOR();
-    uint8_t ORA();
-    uint8_t BIT();
+    u8 AND();
+    u8 EOR();
+    u8 ORA();
+    u8 BIT();
 
     // Arithmetic - 5
-    uint8_t ADC();
-    uint8_t SBC();
-    uint8_t CMP();
-    uint8_t CPX();
-    uint8_t CPY();
+    u8 ADC();
+    u8 SBC();
+    u8 CMP();
+    u8 CPX();
+    u8 CPY();
 
     // Increments & Decrements - 6
-    uint8_t INC();
-    uint8_t INX();
-    uint8_t INY();
-    uint8_t DEC();
-    uint8_t DEX();
-    uint8_t DEY();
+    u8 INC();
+    u8 INX();
+    u8 INY();
+    u8 DEC();
+    u8 DEX();
+    u8 DEY();
 
     // Shifts - 4
-    uint8_t ASL();
-    uint8_t LSR();
-    uint8_t ROL();
-    uint8_t ROR();
+    u8 ASL();
+    u8 LSR();
+    u8 ROL();
+    u8 ROR();
 
     // Jumps & Calls - 3
-    uint8_t JMP();
-    uint8_t JSR();
-    uint8_t RTS();
+    u8 JMP();
+    u8 JSR();
+    u8 RTS();
 
     // Branches - 8
-    uint8_t BCC();
-    uint8_t BCS();
-    uint8_t BEQ();
-    uint8_t BMI();
-    uint8_t BNE();
-    uint8_t BPL();
-    uint8_t BVC();
-    uint8_t BVS();
+    u8 BCC();
+    u8 BCS();
+    u8 BEQ();
+    u8 BMI();
+    u8 BNE();
+    u8 BPL();
+    u8 BVC();
+    u8 BVS();
 
     // Status Flag Changes - 7
-    uint8_t CLC();
-    uint8_t CLD();
-    uint8_t CLI();
-    uint8_t CLV();
-    uint8_t SEC();
-    uint8_t SED();
-    uint8_t SEI();
+    u8 CLC();
+    u8 CLD();
+    u8 CLI();
+    u8 CLV();
+    u8 SEC();
+    u8 SED();
+    u8 SEI();
 
     // System Functions - 3
-    uint8_t BRK();
-    uint8_t NOP();
-    uint8_t RTI();
+    u8 BRK();
+    u8 NOP();
+    u8 RTI();
 
     // Capturing all others
-    uint8_t XXX();
+    u8 XXX();
 
 };
 

@@ -32,15 +32,15 @@ void CPU6502::ConnectBus(Bus *bus){
     this->bus = bus;
 }
 
-uint8_t CPU6502::read(uint16_t a){
-    return bus->read(a, false);
+u8 CPU6502::read(u16 a){
+    return bus->CPURead(a, false);
 }
 
-void CPU6502::write(uint16_t a, uint8_t d){
-    bus->write(a, d);
+void CPU6502::write(u16 a, u8 d){
+    bus->CPUWrite(a, d);
 }
 
-uint8_t CPU6502::getFlag(FLAGS f){
+u8 CPU6502::getFlag(FLAGS f){
 	return ((status & f) > 0) ? 1 : 0;
 }
 
@@ -60,8 +60,8 @@ void CPU6502::reset(){
     status = 0x00 | U;
 
     addr = 0xFFFC;
-    uint16_t lo = read(addr + 0);
-    uint16_t hi = read(addr + 1);
+    u16 lo = read(addr + 0);
+    u16 hi = read(addr + 1);
 
     PC = (hi << 8) | lo;
 
@@ -92,8 +92,8 @@ void CPU6502::irq(){
 
         addr = 0xFFFE;
 
-        uint16_t lo = read(addr + 0);
-        uint16_t hi = read(addr + 1);
+        u16 lo = read(addr + 0);
+        u16 hi = read(addr + 1);
 
         PC = (hi << 8) | lo;
 
@@ -120,8 +120,8 @@ void CPU6502::nmi(){
 
     addr = 0xFFFA;
 
-    uint16_t lo = read(addr + 0);
-    uint16_t hi = read(addr + 1);
+    u16 lo = read(addr + 0);
+    u16 hi = read(addr + 1);
 
     PC = (hi << 8) | lo;
 
@@ -129,7 +129,7 @@ void CPU6502::nmi(){
 
 }
 
-void CPU6502::Clock(){
+void CPU6502::clock(){
 
     if(cycles == 0){
 
@@ -140,10 +140,10 @@ void CPU6502::Clock(){
         cycles = lookup[opcode].cycles;
 
         // Address Mode
-        uint8_t additionalCycles1 = (this->*lookup[opcode].ad)();
+        u8 additionalCycles1 = (this->*lookup[opcode].ad)();
 
         // Operation Mode
-        uint8_t additionalCycles2 = (this->*lookup[opcode].op)();
+        u8 additionalCycles2 = (this->*lookup[opcode].op)();
 
         cycles += (additionalCycles1 & additionalCycles2);
 
@@ -154,7 +154,7 @@ void CPU6502::Clock(){
 
 // Implementing Address Modes
 
-uint8_t CPU6502::IMP(){
+u8 CPU6502::IMP(){
 
     // Gets the accumulator
     fetched = a;
@@ -162,14 +162,14 @@ uint8_t CPU6502::IMP(){
     return 0;
 }
 
-uint8_t CPU6502::IMM(){
+u8 CPU6502::IMM(){
 
     addr = PC++;
     return 0;
 
 }
 
-uint8_t CPU6502::ZP0(){
+u8 CPU6502::ZP0(){
 
     addr = read(PC++);
     addr &= 0x00FF;
@@ -177,7 +177,7 @@ uint8_t CPU6502::ZP0(){
     return 0;
 }
 
-uint8_t CPU6502::ZPX(){
+u8 CPU6502::ZPX(){
 
     addr = read(PC + x);
     PC++;
@@ -187,7 +187,7 @@ uint8_t CPU6502::ZPX(){
 }
 
 
-uint8_t CPU6502::ZPY(){
+u8 CPU6502::ZPY(){
 
     addr = read(PC + x);
     PC++;
@@ -197,7 +197,7 @@ uint8_t CPU6502::ZPY(){
 }
 
 
-uint8_t CPU6502::REL(){
+u8 CPU6502::REL(){
 
     addr_rel = read(PC++);
 
@@ -209,19 +209,19 @@ uint8_t CPU6502::REL(){
     return 0;
 }
 
-uint8_t CPU6502::ABS(){
+u8 CPU6502::ABS(){
 
-    uint8_t lo = read(PC++);
-    uint8_t hi = read(PC++);
+    u8 lo = read(PC++);
+    u8 hi = read(PC++);
     addr = (hi << 8) | lo;
     return 0;
 
 }
 
-uint8_t CPU6502::ABX(){
+u8 CPU6502::ABX(){
 
-    uint8_t lo = read(PC++);
-    uint8_t hi = read(PC++);
+    u8 lo = read(PC++);
+    u8 hi = read(PC++);
     addr = (hi << 8) | lo;
     addr += x;
 
@@ -234,10 +234,10 @@ uint8_t CPU6502::ABX(){
 
 }
 
-uint8_t CPU6502::ABY(){
+u8 CPU6502::ABY(){
 
-    uint8_t lo = read(PC++);
-    uint8_t hi = read(PC++);
+    u8 lo = read(PC++);
+    u8 hi = read(PC++);
     addr = (hi << 8) | lo;
     addr += y;
 
@@ -250,11 +250,11 @@ uint8_t CPU6502::ABY(){
 
 }
 
-uint8_t CPU6502::IND(){
+u8 CPU6502::IND(){
 
-    uint8_t lo = read(PC++);
-    uint8_t hi = read(PC++);
-    uint16_t ptr = (hi << 8) | lo;
+    u8 lo = read(PC++);
+    u8 hi = read(PC++);
+    u16 ptr = (hi << 8) | lo;
     
     // addr = (read(ptr + 1) << 8) | read(ptr);
 
@@ -269,12 +269,12 @@ uint8_t CPU6502::IND(){
 
 }
 
-uint8_t CPU6502::IZX(){
+u8 CPU6502::IZX(){
 
-    uint8_t t = read(PC++);
+    u8 t = read(PC++);
 
-    uint8_t lo = read((((uint16_t)(t + x)) & 0x00FF));
-    uint8_t hi = read((((uint16_t)(t + x + 1)) & 0x00FF));
+    u8 lo = read((((u16)(t + x)) & 0x00FF));
+    u8 hi = read((((u16)(t + x + 1)) & 0x00FF));
 
     addr = (hi << 8) | lo;
 
@@ -282,12 +282,12 @@ uint8_t CPU6502::IZX(){
 
 }
 
-uint8_t CPU6502::IZY(){
+u8 CPU6502::IZY(){
 
-    uint8_t t = read(PC++);
+    u8 t = read(PC++);
 
-    uint8_t lo = read((uint16_t)t & 0x00FF);
-    uint8_t hi = read((uint16_t)(t + 1) & 0x00FF);
+    u8 lo = read((u16)t & 0x00FF);
+    u8 hi = read((u16)(t + 1) & 0x00FF);
 
     addr = (hi << 8) | lo;
     addr += y;
@@ -302,7 +302,7 @@ uint8_t CPU6502::IZY(){
 }
 
 // Instructions
-uint8_t CPU6502::fetch() {
+u8 CPU6502::fetch() {
     
     if (lookup[opcode].ad != &CPU6502::IMP) {
         fetched = read(addr);
@@ -312,7 +312,7 @@ uint8_t CPU6502::fetch() {
 }
 
 // Load / Store Operations - 6
-uint8_t CPU6502::LDA(){
+u8 CPU6502::LDA(){
 
     fetch();
     a = fetched;
@@ -324,7 +324,7 @@ uint8_t CPU6502::LDA(){
 
 }
 
-uint8_t CPU6502::LDX(){
+u8 CPU6502::LDX(){
 
     fetch();
     x = fetched;
@@ -336,7 +336,7 @@ uint8_t CPU6502::LDX(){
 
 }
 
-uint8_t CPU6502::LDY(){
+u8 CPU6502::LDY(){
 
     fetch();
     y = fetched;
@@ -348,17 +348,17 @@ uint8_t CPU6502::LDY(){
 
 }
 
-uint8_t CPU6502::STA(){
+u8 CPU6502::STA(){
     write(addr, a);
     return 0;
 }
 
-uint8_t CPU6502::STX(){
+u8 CPU6502::STX(){
     write(addr, x);
     return 0;
 }
 
-uint8_t CPU6502::STY(){
+u8 CPU6502::STY(){
     write(addr, y);
     return 0;
 }
@@ -367,28 +367,28 @@ uint8_t CPU6502::STY(){
 
 // Resgister Transfers - 4
 
-uint8_t CPU6502::TAX(){
+u8 CPU6502::TAX(){
     x = a;
     setFlag(Z, x == 0x00);
 	setFlag(N, x & 0x80);
 	return 0;
 }
 
-uint8_t CPU6502::TAY(){
+u8 CPU6502::TAY(){
     y = a;
     setFlag(Z, y == 0x00);
 	setFlag(N, y & 0x80);
 	return 0;
 }
 
-uint8_t CPU6502::TXA(){
+u8 CPU6502::TXA(){
     a = x;
     setFlag(Z, a == 0x00);
 	setFlag(N, a & 0x80);
 	return 0;
 }
 
-uint8_t CPU6502::TYA(){
+u8 CPU6502::TYA(){
     a = y;
     setFlag(Z, a == 0x00);
 	setFlag(N, a & 0x80);
@@ -399,19 +399,19 @@ uint8_t CPU6502::TYA(){
 
 // Stack Operations - 6
 
-uint8_t CPU6502::TSX(){
+u8 CPU6502::TSX(){
     x = SP;
     setFlag(Z, x == 0x00);
 	setFlag(N, x & 0x80);
 	return 0;
 }
 
-uint8_t CPU6502::TXS(){
+u8 CPU6502::TXS(){
     SP = x;
     return 0;
 }
 
-uint8_t CPU6502::PHA(){
+u8 CPU6502::PHA(){
 
     write(0x0100 + SP, a);
     SP--;
@@ -419,7 +419,7 @@ uint8_t CPU6502::PHA(){
 
 }
 
-uint8_t CPU6502::PHP(){
+u8 CPU6502::PHP(){
 
     write(0x0100 + SP, status | B | U);
     SP--;
@@ -431,7 +431,7 @@ uint8_t CPU6502::PHP(){
 
 }
 
-uint8_t CPU6502::PLA(){
+u8 CPU6502::PLA(){
     
     SP++;
     a = read(0x0100 + SP);
@@ -441,7 +441,7 @@ uint8_t CPU6502::PLA(){
 
 }
 
-uint8_t CPU6502::PLP(){
+u8 CPU6502::PLP(){
     
     SP++;
     status = read(0x0100 + SP);
@@ -452,7 +452,7 @@ uint8_t CPU6502::PLP(){
 // Stack Operations
 
 // Logical - 4
-uint8_t CPU6502::AND() {
+u8 CPU6502::AND() {
     
     fetch();
     a &= fetched;
@@ -464,7 +464,7 @@ uint8_t CPU6502::AND() {
 
 }
 
-uint8_t CPU6502::EOR(){
+u8 CPU6502::EOR(){
 
     fetch();
 
@@ -477,7 +477,7 @@ uint8_t CPU6502::EOR(){
 
 }
 
-uint8_t CPU6502::ORA(){
+u8 CPU6502::ORA(){
 
     fetch();
 
@@ -490,7 +490,7 @@ uint8_t CPU6502::ORA(){
 
 }
 
-uint8_t CPU6502::BIT(){
+u8 CPU6502::BIT(){
 
     fetch();
 
@@ -504,16 +504,16 @@ uint8_t CPU6502::BIT(){
 // Logical
 
 // Arithmetic - 5
-uint8_t CPU6502::ADC(){
+u8 CPU6502::ADC(){
     fetch();
-    uint16_t temp = static_cast<uint16_t>(a) + static_cast<uint16_t>(fetched) + static_cast<uint16_t>(getFlag(C));
+    u16 temp = static_cast<u16>(a) + static_cast<u16>(fetched) + static_cast<u16>(getFlag(C));
 
     setFlag(C, temp > 255);
     setFlag(Z, (temp & 0x00FF) == 0);
     setFlag(V, (
         (
-            ~(static_cast<uint16_t>(a) ^ static_cast<uint16_t>(fetched)) & 
-            (static_cast<uint16_t>(a) ^ static_cast<uint16_t>(temp))) & 0x0080
+            ~(static_cast<u16>(a) ^ static_cast<u16>(fetched)) & 
+            (static_cast<u16>(a) ^ static_cast<u16>(temp))) & 0x0080
         )
     );
 
@@ -522,20 +522,20 @@ uint8_t CPU6502::ADC(){
     return 1;
 }
 
-uint8_t CPU6502::SBC(){
+u8 CPU6502::SBC(){
 
     // 2's Complement
     fetch();
-    uint16_t complement = ((uint16_t)fetched) ^ 0x00FF;
+    u16 complement = ((u16)fetched) ^ 0x00FF;
 
-    uint16_t temp = static_cast<uint16_t>(a) + complement + static_cast<uint16_t>(getFlag(C));
+    u16 temp = static_cast<u16>(a) + complement + static_cast<u16>(getFlag(C));
 
     setFlag(C, temp > 255);
     setFlag(Z, (temp & 0x00FF) == 0);
     setFlag(V, (
         (
-            ~(static_cast<uint16_t>(a) ^ static_cast<uint16_t>(fetched)) & 
-            (static_cast<uint16_t>(a) ^ static_cast<uint16_t>(temp))) & 0x0080
+            ~(static_cast<u16>(a) ^ static_cast<u16>(fetched)) & 
+            (static_cast<u16>(a) ^ static_cast<u16>(temp))) & 0x0080
         )
     );
 
@@ -544,10 +544,10 @@ uint8_t CPU6502::SBC(){
     return 1;
 }
 
-uint8_t CPU6502::CMP(){
+u8 CPU6502::CMP(){
     
     fetch();
-    temp = static_cast<uint16_t>(a) - static_cast<uint16_t>(fetched);
+    temp = static_cast<u16>(a) - static_cast<u16>(fetched);
     
     setFlag(C, a >= fetched);
     setFlag(Z, (temp & 0x00FF) == 0x00);
@@ -556,10 +556,10 @@ uint8_t CPU6502::CMP(){
 
 }
 
-uint8_t CPU6502::CPX(){
+u8 CPU6502::CPX(){
     
     fetch();
-    temp = static_cast<uint16_t>(x) - static_cast<uint16_t>(fetched);
+    temp = static_cast<u16>(x) - static_cast<u16>(fetched);
     
     setFlag(C, x >= fetched);
     setFlag(Z, (temp & 0x00FF) == 0x00);
@@ -568,10 +568,10 @@ uint8_t CPU6502::CPX(){
 
 }
 
-uint8_t CPU6502::CPY(){
+u8 CPU6502::CPY(){
     
     fetch();
-    temp = static_cast<uint16_t>(y) - static_cast<uint16_t>(fetched);
+    temp = static_cast<u16>(y) - static_cast<u16>(fetched);
     
     setFlag(C, y >= fetched);
     setFlag(Z, (temp & 0x00FF) == 0x00);
@@ -583,10 +583,10 @@ uint8_t CPU6502::CPY(){
 
 
 // Increments & Decrements - 6
-uint8_t CPU6502::INC(){
+u8 CPU6502::INC(){
 
     fetch();
-    temp = static_cast<uint16_t>(fetched) + 1;
+    temp = static_cast<u16>(fetched) + 1;
 
     setFlag(Z, (temp & 0x00FF) == 0x00);
     setFlag(N, temp & 0x80);
@@ -595,7 +595,7 @@ uint8_t CPU6502::INC(){
 
 }
 
-uint8_t CPU6502::INX(){
+u8 CPU6502::INX(){
     x++;
     setFlag(Z, x == 0x00);
     setFlag(N, x & 0x80);
@@ -603,17 +603,17 @@ uint8_t CPU6502::INX(){
 }
 
 
-uint8_t CPU6502::INY(){
+u8 CPU6502::INY(){
     y++;
     setFlag(Z, y == 0x00);
     setFlag(N, y & 0x80);
     return 0;
 }
 
-uint8_t CPU6502::DEC(){
+u8 CPU6502::DEC(){
 
     fetch();
-    temp = static_cast<uint16_t>(fetched) - 1;
+    temp = static_cast<u16>(fetched) - 1;
     write(addr, temp & 0x00FF);
 
     setFlag(Z, (temp & 0x00FF) == 0x00);
@@ -621,14 +621,14 @@ uint8_t CPU6502::DEC(){
     return 0;
 }
 
-uint8_t CPU6502::DEX(){
+u8 CPU6502::DEX(){
     x--;
     setFlag(Z, x == 0x00);
     setFlag(N, x & 0x80);
     return 0;
 }
 
-uint8_t CPU6502::DEY(){
+u8 CPU6502::DEY(){
     y--;
     setFlag(Z, y == 0x00);
     setFlag(N, y & 0x80);
@@ -639,10 +639,10 @@ uint8_t CPU6502::DEY(){
 
 
 // Shifts - 4
-uint8_t CPU6502::ASL(){
+u8 CPU6502::ASL(){
     
     fetch();
-    temp = static_cast<uint16_t>(fetched) << 1;
+    temp = static_cast<u16>(fetched) << 1;
 
     setFlag(N, temp & 0x80);
     setFlag(Z, (temp & 0x00FF) == 0x00);
@@ -658,7 +658,7 @@ uint8_t CPU6502::ASL(){
 
 }
 
-uint8_t CPU6502::LSR(){
+u8 CPU6502::LSR(){
 
     fetch();
 
@@ -678,7 +678,7 @@ uint8_t CPU6502::LSR(){
 
 }
 
-uint8_t CPU6502::ROL(){
+u8 CPU6502::ROL(){
     
     fetch();
     
@@ -697,11 +697,11 @@ uint8_t CPU6502::ROL(){
 
 }
 
-uint8_t CPU6502::ROR(){
+u8 CPU6502::ROR(){
     
     fetch();
     
-    temp = static_cast<uint16_t>(getFlag(C) << 7) | (fetched >> 1);
+    temp = static_cast<u16>(getFlag(C) << 7) | (fetched >> 1);
 
     setFlag(C, fetched & 0x0001);
     setFlag(Z, (temp & 0x00FF) == 0x00);
@@ -718,12 +718,12 @@ uint8_t CPU6502::ROR(){
 // Shifts
 
 // Jumps & Calls - 3
-uint8_t CPU6502::JMP(){
+u8 CPU6502::JMP(){
     PC = addr;
     return 0;
 }
 
-uint8_t CPU6502::JSR(){
+u8 CPU6502::JSR(){
     
     PC--;
 
@@ -738,12 +738,12 @@ uint8_t CPU6502::JSR(){
 
 }
 
-uint8_t CPU6502::RTS(){
+u8 CPU6502::RTS(){
     
     SP++;
-	PC = static_cast<uint16_t>(read(0x0100 + SP));
+	PC = static_cast<u16>(read(0x0100 + SP));
 	SP++;
-	PC |= static_cast<uint16_t>(read(0x0100 + SP)) << 8;
+	PC |= static_cast<u16>(read(0x0100 + SP)) << 8;
 	
 	PC++;
 	
@@ -752,7 +752,7 @@ uint8_t CPU6502::RTS(){
 // Jumps & Calls
 
 // Branches - 8
-uint8_t CPU6502::BCC(){
+u8 CPU6502::BCC(){
     if (getFlag(C) == 0) {
 
         cycles++;
@@ -772,7 +772,7 @@ uint8_t CPU6502::BCC(){
     return 0;
 }
 
-uint8_t CPU6502::BCS() {
+u8 CPU6502::BCS() {
 
     if (getFlag(C) == 1) {
 
@@ -793,7 +793,7 @@ uint8_t CPU6502::BCS() {
     return 0;
 }
 
-uint8_t CPU6502::BEQ(){
+u8 CPU6502::BEQ(){
     if (getFlag(Z) == 0) {
 
         cycles++;
@@ -813,7 +813,7 @@ uint8_t CPU6502::BEQ(){
     return 0;
 }
 
-uint8_t CPU6502::BMI(){
+u8 CPU6502::BMI(){
     if (getFlag(N) == 1) {
 
         cycles++;
@@ -833,7 +833,7 @@ uint8_t CPU6502::BMI(){
     return 0;
 }
 
-uint8_t CPU6502::BNE(){
+u8 CPU6502::BNE(){
     if (getFlag(Z) == 0) {
 
         cycles++;
@@ -853,7 +853,7 @@ uint8_t CPU6502::BNE(){
     return 0;
 }
 
-uint8_t CPU6502::BPL(){
+u8 CPU6502::BPL(){
     if (getFlag(N) == 0) {
 
         cycles++;
@@ -873,7 +873,7 @@ uint8_t CPU6502::BPL(){
     return 0;
 }
 
-uint8_t CPU6502::BVC(){
+u8 CPU6502::BVC(){
     if (getFlag(V) == 0) {
 
         cycles++;
@@ -893,7 +893,7 @@ uint8_t CPU6502::BVC(){
     return 0;
 }
 
-uint8_t CPU6502::BVS(){
+u8 CPU6502::BVS(){
     if (getFlag(V) == 1) {
 
         cycles++;
@@ -914,44 +914,44 @@ uint8_t CPU6502::BVS(){
 }
 
 // Status Flag Changes - 7
-uint8_t CPU6502::CLC(){
+u8 CPU6502::CLC(){
     setFlag(C, 0);
     return 0;
 }
 
-uint8_t CPU6502::CLD(){
+u8 CPU6502::CLD(){
     setFlag(D, 0);
     return 0;
 }
 
-uint8_t CPU6502::CLI(){
+u8 CPU6502::CLI(){
     setFlag(I, 0);
     return 0;
 }
 
-uint8_t CPU6502::CLV(){
+u8 CPU6502::CLV(){
     setFlag(V, 0);
     return 0;
 }
 
-uint8_t CPU6502::SEC(){
+u8 CPU6502::SEC(){
     setFlag(C, 1);
     return 0;
 }
 
-uint8_t CPU6502::SED(){
+u8 CPU6502::SED(){
     setFlag(D, 1);
     return 0;
 }
 
-uint8_t CPU6502::SEI(){
+u8 CPU6502::SEI(){
     setFlag(I, 1);
     return 0;
 }
 
 
 // System Functions - 3
-uint8_t CPU6502::BRK(){
+u8 CPU6502::BRK(){
     
     PC++;
 
@@ -968,8 +968,8 @@ uint8_t CPU6502::BRK(){
     SP--;
     setFlag(B, 1);
 
-    uint16_t lo = read(0xFFFE + 0);
-    uint16_t hi = read(0xFFFE + 1);
+    u16 lo = read(0xFFFE + 0);
+    u16 hi = read(0xFFFE + 1);
 
     PC = (hi << 8) | lo;
 
@@ -977,7 +977,7 @@ uint8_t CPU6502::BRK(){
 
 }
 
-uint8_t CPU6502::NOP(){
+u8 CPU6502::NOP(){
 
     switch (opcode){
 
@@ -996,7 +996,7 @@ uint8_t CPU6502::NOP(){
 
 }
 
-uint8_t CPU6502::RTI(){
+u8 CPU6502::RTI(){
 
     SP++;
     status = read(0x0100 + SP);
@@ -1014,7 +1014,7 @@ uint8_t CPU6502::RTI(){
 // System Functions
 
 // Capturing all others
-uint8_t CPU6502::XXX(){
+u8 CPU6502::XXX(){
     return 0;
 }
 
@@ -1049,7 +1049,7 @@ std::map<uint16_t, std::string> CPU6502::disassemble(uint16_t nStart, uint16_t n
 
         std::string sInst = "$" + hex(address, 4) + ": ";
 
-        uint8_t opcode = bus->read(address, true); address++;
+        uint8_t opcode = bus->CPURead(address, true); address++;
         sInst += lookup[opcode].name + " ";
 
         if (lookup[opcode].ad == &CPU6502::IMP)
@@ -1058,66 +1058,66 @@ std::map<uint16_t, std::string> CPU6502::disassemble(uint16_t nStart, uint16_t n
         }
         else if (lookup[opcode].ad == &CPU6502::IMM)
         {
-            value = bus->read(address, true); address++;
+            value = bus->CPURead(address, true); address++;
             sInst += "#$" + hex(value, 2) + " {IMM}";
         }
         else if (lookup[opcode].ad == &CPU6502::ZP0)
         {
-            lo = bus->read(address, true); address++;
+            lo = bus->CPURead(address, true); address++;
             hi = 0x00;
             sInst += "$" + hex(lo, 2) + " {ZP0}";
         }
         else if (lookup[opcode].ad == &CPU6502::ZPX)
         {
-            lo = bus->read(address, true); address++;
+            lo = bus->CPURead(address, true); address++;
             hi = 0x00;
             sInst += "$" + hex(lo, 2) + ", X {ZPX}";
         }
         else if (lookup[opcode].ad == &CPU6502::ZPY)
         {
-            lo = bus->read(address, true); address++;
+            lo = bus->CPURead(address, true); address++;
             hi = 0x00;
             sInst += "$" + hex(lo, 2) + ", Y {ZPY}";
         }
         else if (lookup[opcode].ad == &CPU6502::IZX)
         {
-            lo = bus->read(address, true); address++;
+            lo = bus->CPURead(address, true); address++;
             hi = 0x00;
             sInst += "($" + hex(lo, 2) + ", X) {IZX}";
         }
         else if (lookup[opcode].ad == &CPU6502::IZY)
         {
-            lo = bus->read(address, true); address++;
+            lo = bus->CPURead(address, true); address++;
             hi = 0x00;
             sInst += "($" + hex(lo, 2) + "), Y {IZY}";
         }
         else if (lookup[opcode].ad == &CPU6502::ABS)
         {
-            lo = bus->read(address, true); address++;
-            hi = bus->read(address, true); address++;
+            lo = bus->CPURead(address, true); address++;
+            hi = bus->CPURead(address, true); address++;
             sInst += "$" + hex((uint16_t)(hi << 8) | lo, 4) + " {ABS}";
         }
         else if (lookup[opcode].ad == &CPU6502::ABX)
         {
-            lo = bus->read(address, true); address++;
-            hi = bus->read(address, true); address++;
+            lo = bus->CPURead(address, true); address++;
+            hi = bus->CPURead(address, true); address++;
             sInst += "$" + hex((uint16_t)(hi << 8) | lo, 4) + ", X {ABX}";
         }
         else if (lookup[opcode].ad == &CPU6502::ABY)
         {
-            lo = bus->read(address, true); address++;
-            hi = bus->read(address, true); address++;
+            lo = bus->CPURead(address, true); address++;
+            hi = bus->CPURead(address, true); address++;
             sInst += "$" + hex((uint16_t)(hi << 8) | lo, 4) + ", Y {ABY}";
         }
         else if (lookup[opcode].ad == &CPU6502::IND)
         {
-            lo = bus->read(address, true); address++;
-            hi = bus->read(address, true); address++;
+            lo = bus->CPURead(address, true); address++;
+            hi = bus->CPURead(address, true); address++;
             sInst += "($" + hex((uint16_t)(hi << 8) | lo, 4) + ") {IND}";
         }
         else if (lookup[opcode].ad == &CPU6502::REL)
         {
-            value = bus->read(address, true); address++;
+            value = bus->CPURead(address, true); address++;
             sInst += "$" + hex(value, 2) + " [$" + hex(address + value, 4) + "] {REL}";
         }
 

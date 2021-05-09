@@ -1,11 +1,7 @@
 cmake_minimum_required(VERSION 3.17)
 project(NES)
 
-if (APPLE)
-
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-arch x86_64 -framework OpenGL -framework GLUT -framework Carbon -lpng")
-
-endif()
+set(CMAKE_CXX_STANDARD 17)
 
 add_compile_definitions(HELPER_FUNCTIONS)
 
@@ -23,16 +19,16 @@ add_executable("OLC" "olc_example.cpp")
 
 target_link_libraries("NES_CPU" "CPU6502")
 
-# if (APPLE)
+if (APPLE)
 
-# find_package(PNG REQUIRED)
-# include_directories(${PNG_INCLUDE_DIR})
+find_package(PNG REQUIRED)
+include_directories(${PNG_INCLUDE_DIR})
 
-# target_link_libraries("OLC" ${PNG_LIBRARY})
-# target_link_libraries("NES_CPU" "CPU6502" ${PNG_LIBRARY})
+target_link_libraries("OLC" "-framework OpenGL" "-framework GLUT" "-framework Carbon" ${PNG_LIBRARY})
+target_link_libraries("NES_CPU" "CPU6502" "-framework OpenGL" "-framework GLUT" "-framework Carbon" ${PNG_LIBRARY})
 
-# else()
+else()
 
-# target_link_libraries("NES_CPU" "CPU6502")
+target_link_libraries("NES_CPU" "CPU6502")
 
-# endif()
+endif()

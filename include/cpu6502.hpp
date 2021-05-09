@@ -4,9 +4,13 @@
 #include <cstdint>
 #include <string>
 #include <vector>
-#include <bus.hpp>
+#include <map>
 
-class Cpu6502
+#include "bus.hpp"
+
+class Bus;
+
+class CPU6502
 {
 
 public:
@@ -30,8 +34,8 @@ public:
     uint16_t PC;    // Program Counter
 
 public:
-    Cpu6502();
-    ~Cpu6502();
+    CPU6502();
+    ~CPU6502();
 
     void reset();	// Resets the CPU to default
 	void irq();		// Interrupt Request - Executes an instruction at a specific location
@@ -39,6 +43,13 @@ public:
 	void Clock();   // Performs a clock cycle
 
     void ConnectBus(Bus *bus);
+    
+#ifdef HELPER_FUNCTIONS
+
+    bool complete();
+    std::map<uint16_t, std::string> disassemble(uint16_t nStart, uint16_t nStop);   
+    
+#endif
 
 private:
     
@@ -63,8 +74,8 @@ private:
     struct INSTRUCTION
 	{
 		std::string name;		
-		uint8_t     (Cpu6502::*op)(void) = nullptr;
-		uint8_t     (Cpu6502::*ad)(void) = nullptr;
+		uint8_t     (CPU6502::*op)(void) = nullptr;
+		uint8_t     (CPU6502::*ad)(void) = nullptr;
 		uint8_t     cycles = 0;
 	};
 

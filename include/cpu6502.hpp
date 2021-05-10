@@ -11,7 +11,7 @@ class CPU6502
 
 public:
 
-    enum FLAGS{
+    enum class FLAGS {
         C = (1 << 0), // Carry
         Z = (1 << 1), // Zero
         I = (1 << 2), // Disable Interrupts

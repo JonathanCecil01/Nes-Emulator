@@ -2,7 +2,7 @@
 
 Bus::Bus()
 {
-    for(u8 &i : CPURam) i = 0x00;
+    noSystemTicks = 0;
     cpu.ConnectBus(this);
 }
 
@@ -50,8 +50,15 @@ void Bus::reset()
 
 void Bus::clock()
 {
-    cpu.clock();
     ppu.clock();
+
+
+    if (noSystemTicks % 3 == 0)
+    {
+        cpu.clock();
+    }
+
+    noSystemTicks++;
 }
 
 void Bus::insertCatridge(const std::shared_ptr<Catridge>& catridge)

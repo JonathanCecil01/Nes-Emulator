@@ -40,15 +40,15 @@ void CPU6502::write(u16 a, u8 d){
     bus->CPUWrite(a, d);
 }
 
-u8 CPU6502::getFlag(FLAGS f){
-	return ((status & f) > 0) ? 1 : 0;
+u8 CPU6502::getFlag(CPU6502::FLAGS f){
+	return ((status & (int)f) > 0) ? 1 : 0;
 }
 
-void CPU6502::setFlag(FLAGS f, bool v){
+void CPU6502::setFlag(CPU6502::FLAGS f, bool v){
 	if (v)
-		status |= f;
+		status |= (int)f;
 	else
-		status &= ~f;
+		status &= ~((int)f);
 }
 
 void CPU6502::reset(){
@@ -57,7 +57,7 @@ void CPU6502::reset(){
     x = 0x00;
     y = 0x00;
     SP = 0xFD;
-    status = 0x00 | U;
+    status = 0x00 | (int)CPU6502::FLAGS::U;
 
     addr = 0xFFFC;
     u16 lo = read(addr + 0);
@@ -75,7 +75,7 @@ void CPU6502::reset(){
 
 void CPU6502::irq(){
 
-    if(getFlag(I) == 0){
+    if(getFlag(CPU6502::FLAGS::I) == 0){
 
         write(0x0100 + SP, (PC >> 8) & 0x00FF);
         SP--;
@@ -83,9 +83,9 @@ void CPU6502::irq(){
         write(0x0100 + SP, PC & 0x00FF);
         SP--;
 
-        setFlag(B, 0);
-        setFlag(U, 1);
-        setFlag(I, 1);
+        setFlag(CPU6502::FLAGS::B, 0);
+        setFlag(CPU6502::FLAGS::U, 1);
+        setFlag(CPU6502::FLAGS::I, 1);
 
         write(0x0100 + SP, status);
         SP--;
@@ -111,9 +111,9 @@ void CPU6502::nmi(){
     write(0x0100 + SP, PC & 0x00FF);
     SP--;
 
-    setFlag(B, 0);
-    setFlag(U, 1);
-    setFlag(I, 1);
+    setFlag(CPU6502::FLAGS::B, 0);
+    setFlag(CPU6502::FLAGS::U, 1);
+    setFlag(CPU6502::FLAGS::I, 1);
 
     write(0x0100 + SP, status);
     SP--;
@@ -317,8 +317,8 @@ u8 CPU6502::LDA(){
     fetch();
     a = fetched;
 
-    setFlag(Z, a == 0x00);
-    setFlag(N, a & 0x80);
+    setFlag(CPU6502::FLAGS::Z, a == 0x00);
+    setFlag(CPU6502::FLAGS::N, a & 0x80);
 
     return 0;
 
@@ -329,8 +329,8 @@ u8 CPU6502::LDX(){
     fetch();
     x = fetched;
 
-    setFlag(Z, x == 0x00);
-    setFlag(N, x & 0x80);
+    setFlag(CPU6502::FLAGS::Z, x == 0x00);
+    setFlag(CPU6502::FLAGS::N, x & 0x80);
 
     return 0;
 
@@ -341,8 +341,8 @@ u8 CPU6502::LDY(){
     fetch();
     y = fetched;
 
-    setFlag(Z, y == 0x00);
-    setFlag(N, y & 0x80);
+    setFlag(CPU6502::FLAGS::Z, y == 0x00);
+    setFlag(CPU6502::FLAGS::N, y & 0x80);
 
     return 0;
 
@@ -369,29 +369,29 @@ u8 CPU6502::STY(){
 
 u8 CPU6502::TAX(){
     x = a;
-    setFlag(Z, x == 0x00);
-	setFlag(N, x & 0x80);
+    setFlag(CPU6502::FLAGS::Z, x == 0x00);
+	setFlag(CPU6502::FLAGS::N, x & 0x80);
 	return 0;
 }
 
 u8 CPU6502::TAY(){
     y = a;
-    setFlag(Z, y == 0x00);
-	setFlag(N, y & 0x80);
+    setFlag(CPU6502::FLAGS::Z, y == 0x00);
+	setFlag(CPU6502::FLAGS::N, y & 0x80);
 	return 0;
 }
 
 u8 CPU6502::TXA(){
     a = x;
-    setFlag(Z, a == 0x00);
-	setFlag(N, a & 0x80);
+    setFlag(CPU6502::FLAGS::Z, a == 0x00);
+	setFlag(CPU6502::FLAGS::N, a & 0x80);
 	return 0;
 }
 
 u8 CPU6502::TYA(){
     a = y;
-    setFlag(Z, a == 0x00);
-	setFlag(N, a & 0x80);
+    setFlag(CPU6502::FLAGS::Z, a == 0x00);
+	setFlag(CPU6502::FLAGS::N, a & 0x80);
 	return 0;
 }
 
@@ -401,8 +401,8 @@ u8 CPU6502::TYA(){
 
 u8 CPU6502::TSX(){
     x = SP;
-    setFlag(Z, x == 0x00);
-	setFlag(N, x & 0x80);
+    setFlag(CPU6502::FLAGS::Z, x == 0x00);
+	setFlag(CPU6502::FLAGS::N, x & 0x80);
 	return 0;
 }
 
@@ -421,11 +421,11 @@ u8 CPU6502::PHA(){
 
 u8 CPU6502::PHP(){
 
-    write(0x0100 + SP, status | B | U);
+    write(0x0100 + SP, status | (int)CPU6502::FLAGS::B | (int)CPU6502::FLAGS::U);
     SP--;
 
-    setFlag(B, 0);
-    setFlag(U, 0);
+    setFlag(CPU6502::FLAGS::B, 0);
+    setFlag(CPU6502::FLAGS::U, 0);
 
     return 0;
 
@@ -435,8 +435,8 @@ u8 CPU6502::PLA(){
     
     SP++;
     a = read(0x0100 + SP);
-    setFlag(Z, a == 0x00);
-    setFlag(N, a & 0x80);
+    setFlag(CPU6502::FLAGS::Z, a == 0x00);
+    setFlag(CPU6502::FLAGS::N, a & 0x80);
     return 0;
 
 }
@@ -445,7 +445,7 @@ u8 CPU6502::PLP(){
     
     SP++;
     status = read(0x0100 + SP);
-    setFlag(U, 1);
+    setFlag(CPU6502::FLAGS::U, 1);
     return 0;
 
 }
@@ -457,8 +457,8 @@ u8 CPU6502::AND() {
     fetch();
     a &= fetched;
 
-    setFlag(Z, a == 0x00);
-    setFlag(N, a &= 0x80);
+    setFlag(CPU6502::FLAGS::Z, a == 0x00);
+    setFlag(CPU6502::FLAGS::N, a &= 0x80);
 
     return 1;
 
@@ -470,8 +470,8 @@ u8 CPU6502::EOR(){
 
     a ^= fetched;
 
-    setFlag(Z, a == 0x00);
-    setFlag(N, a & 0x80);
+    setFlag(CPU6502::FLAGS::Z, a == 0x00);
+    setFlag(CPU6502::FLAGS::N, a & 0x80);
 
     return 1;
 
@@ -483,8 +483,8 @@ u8 CPU6502::ORA(){
 
     a |= fetched;
 
-    setFlag(Z, a == 0x00);
-    setFlag(N, a & 0x80);
+    setFlag(CPU6502::FLAGS::Z, a == 0x00);
+    setFlag(CPU6502::FLAGS::N, a & 0x80);
 
     return 1;
 
@@ -494,9 +494,9 @@ u8 CPU6502::BIT(){
 
     fetch();
 
-    setFlag(Z, (a & fetched) == 0x00);
-    setFlag(N, fetched & 0x80);
-    setFlag(V, fetched & 0x70);
+    setFlag(CPU6502::FLAGS::Z, (a & fetched) == 0x00);
+    setFlag(CPU6502::FLAGS::N, fetched & 0x80);
+    setFlag(CPU6502::FLAGS::V, fetched & 0x70);
     
     return 0;
 }
@@ -506,11 +506,11 @@ u8 CPU6502::BIT(){
 // Arithmetic - 5
 u8 CPU6502::ADC(){
     fetch();
-    u16 temp = static_cast<u16>(a) + static_cast<u16>(fetched) + static_cast<u16>(getFlag(C));
+    u16 temp = static_cast<u16>(a) + static_cast<u16>(fetched) + static_cast<u16>(getFlag(CPU6502::FLAGS::C));
 
-    setFlag(C, temp > 255);
-    setFlag(Z, (temp & 0x00FF) == 0);
-    setFlag(V, (
+    setFlag(CPU6502::FLAGS::C, temp > 255);
+    setFlag(CPU6502::FLAGS::Z, (temp & 0x00FF) == 0);
+    setFlag(CPU6502::FLAGS::V, (
         (
             ~(static_cast<u16>(a) ^ static_cast<u16>(fetched)) & 
             (static_cast<u16>(a) ^ static_cast<u16>(temp))) & 0x0080
@@ -528,11 +528,11 @@ u8 CPU6502::SBC(){
     fetch();
     u16 complement = ((u16)fetched) ^ 0x00FF;
 
-    u16 temp = static_cast<u16>(a) + complement + static_cast<u16>(getFlag(C));
+    u16 temp = static_cast<u16>(a) + complement + static_cast<u16>(getFlag(CPU6502::FLAGS::C));
 
-    setFlag(C, temp > 255);
-    setFlag(Z, (temp & 0x00FF) == 0);
-    setFlag(V, (
+    setFlag(CPU6502::FLAGS::C, temp > 255);
+    setFlag(CPU6502::FLAGS::Z, (temp & 0x00FF) == 0);
+    setFlag(CPU6502::FLAGS::V, (
         (
             ~(static_cast<u16>(a) ^ static_cast<u16>(fetched)) & 
             (static_cast<u16>(a) ^ static_cast<u16>(temp))) & 0x0080
@@ -549,9 +549,9 @@ u8 CPU6502::CMP(){
     fetch();
     temp = static_cast<u16>(a) - static_cast<u16>(fetched);
     
-    setFlag(C, a >= fetched);
-    setFlag(Z, (temp & 0x00FF) == 0x00);
-    setFlag(N, temp & 0x80);
+    setFlag(CPU6502::FLAGS::C, a >= fetched);
+    setFlag(CPU6502::FLAGS::Z, (temp & 0x00FF) == 0x00);
+    setFlag(CPU6502::FLAGS::N, temp & 0x80);
     return 1;
 
 }
@@ -561,9 +561,9 @@ u8 CPU6502::CPX(){
     fetch();
     temp = static_cast<u16>(x) - static_cast<u16>(fetched);
     
-    setFlag(C, x >= fetched);
-    setFlag(Z, (temp & 0x00FF) == 0x00);
-    setFlag(N, temp & 0x80);
+    setFlag(CPU6502::FLAGS::C, x >= fetched);
+    setFlag(CPU6502::FLAGS::Z, (temp & 0x00FF) == 0x00);
+    setFlag(CPU6502::FLAGS::N, temp & 0x80);
     return 1;
 
 }
@@ -573,9 +573,9 @@ u8 CPU6502::CPY(){
     fetch();
     temp = static_cast<u16>(y) - static_cast<u16>(fetched);
     
-    setFlag(C, y >= fetched);
-    setFlag(Z, (temp & 0x00FF) == 0x00);
-    setFlag(N, temp & 0x80);
+    setFlag(CPU6502::FLAGS::C, y >= fetched);
+    setFlag(CPU6502::FLAGS::Z, (temp & 0x00FF) == 0x00);
+    setFlag(CPU6502::FLAGS::N, temp & 0x80);
     return 1;
 
 }
@@ -588,8 +588,8 @@ u8 CPU6502::INC(){
     fetch();
     temp = static_cast<u16>(fetched) + 1;
 
-    setFlag(Z, (temp & 0x00FF) == 0x00);
-    setFlag(N, temp & 0x80);
+    setFlag(CPU6502::FLAGS::Z, (temp & 0x00FF) == 0x00);
+    setFlag(CPU6502::FLAGS::N, temp & 0x80);
 
     return 0;
 
@@ -597,16 +597,16 @@ u8 CPU6502::INC(){
 
 u8 CPU6502::INX(){
     x++;
-    setFlag(Z, x == 0x00);
-    setFlag(N, x & 0x80);
+    setFlag(CPU6502::FLAGS::Z, x == 0x00);
+    setFlag(CPU6502::FLAGS::N, x & 0x80);
     return 0;
 }
 
 
 u8 CPU6502::INY(){
     y++;
-    setFlag(Z, y == 0x00);
-    setFlag(N, y & 0x80);
+    setFlag(CPU6502::FLAGS::Z, y == 0x00);
+    setFlag(CPU6502::FLAGS::N, y & 0x80);
     return 0;
 }
 
@@ -616,22 +616,22 @@ u8 CPU6502::DEC(){
     temp = static_cast<u16>(fetched) - 1;
     write(addr, temp & 0x00FF);
 
-    setFlag(Z, (temp & 0x00FF) == 0x00);
-    setFlag(N, temp & 0x80);
+    setFlag(CPU6502::FLAGS::Z, (temp & 0x00FF) == 0x00);
+    setFlag(CPU6502::FLAGS::N, temp & 0x80);
     return 0;
 }
 
 u8 CPU6502::DEX(){
     x--;
-    setFlag(Z, x == 0x00);
-    setFlag(N, x & 0x80);
+    setFlag(CPU6502::FLAGS::Z, x == 0x00);
+    setFlag(CPU6502::FLAGS::N, x & 0x80);
     return 0;
 }
 
 u8 CPU6502::DEY(){
     y--;
-    setFlag(Z, y == 0x00);
-    setFlag(N, y & 0x80);
+    setFlag(CPU6502::FLAGS::Z, y == 0x00);
+    setFlag(CPU6502::FLAGS::N, y & 0x80);
     return 0;
 }
 
@@ -644,9 +644,9 @@ u8 CPU6502::ASL(){
     fetch();
     temp = static_cast<u16>(fetched) << 1;
 
-    setFlag(N, temp & 0x80);
-    setFlag(Z, (temp & 0x00FF) == 0x00);
-    setFlag(C, (temp & 0xFF00) > 0);
+    setFlag(CPU6502::FLAGS::N, temp & 0x80);
+    setFlag(CPU6502::FLAGS::Z, (temp & 0x00FF) == 0x00);
+    setFlag(CPU6502::FLAGS::C, (temp & 0xFF00) > 0);
 
     if(lookup[opcode].ad == &CPU6502::IMP){
         a = temp & 0x00FF;
@@ -662,12 +662,12 @@ u8 CPU6502::LSR(){
 
     fetch();
 
-    setFlag(C, fetched & 0x0001);
+    setFlag(CPU6502::FLAGS::C, fetched & 0x0001);
 
     temp = fetched >> 1;	
 
-    setFlag(Z, (temp & 0x00FF) == 0x00);
-	setFlag(N, temp & 0x0080);
+    setFlag(CPU6502::FLAGS::Z, (temp & 0x00FF) == 0x00);
+	setFlag(CPU6502::FLAGS::N, temp & 0x0080);
 
     if (lookup[opcode].ad == &CPU6502::IMP)
 		a = temp & 0x00FF;
@@ -682,11 +682,11 @@ u8 CPU6502::ROL(){
     
     fetch();
     
-    temp = (fetched << 1) | getFlag(C);
+    temp = (fetched << 1) | getFlag(CPU6502::FLAGS::C);
 
-    setFlag(C, temp & 0xFF00);
-    setFlag(Z, (temp & 0x00FF) == 0x00);
-    setFlag(N, temp & 0x80);
+    setFlag(CPU6502::FLAGS::C, temp & 0xFF00);
+    setFlag(CPU6502::FLAGS::Z, (temp & 0x00FF) == 0x00);
+    setFlag(CPU6502::FLAGS::N, temp & 0x80);
 
     if (lookup[opcode].ad == &CPU6502::IMP)
 		a = temp & 0x00FF;
@@ -701,11 +701,11 @@ u8 CPU6502::ROR(){
     
     fetch();
     
-    temp = static_cast<u16>(getFlag(C) << 7) | (fetched >> 1);
+    temp = static_cast<u16>(getFlag(CPU6502::FLAGS::C) << 7) | (fetched >> 1);
 
-    setFlag(C, fetched & 0x0001);
-    setFlag(Z, (temp & 0x00FF) == 0x00);
-    setFlag(N, temp & 0x80);
+    setFlag(CPU6502::FLAGS::C, fetched & 0x0001);
+    setFlag(CPU6502::FLAGS::Z, (temp & 0x00FF) == 0x00);
+    setFlag(CPU6502::FLAGS::N, temp & 0x80);
 
     if (lookup[opcode].ad == &CPU6502::IMP)
 		a = temp & 0x00FF;
@@ -753,7 +753,7 @@ u8 CPU6502::RTS(){
 
 // Branches - 8
 u8 CPU6502::BCC(){
-    if (getFlag(C) == 0) {
+    if (getFlag(CPU6502::FLAGS::C) == 0) {
 
         cycles++;
 
@@ -774,7 +774,7 @@ u8 CPU6502::BCC(){
 
 u8 CPU6502::BCS() {
 
-    if (getFlag(C) == 1) {
+    if (getFlag(CPU6502::FLAGS::C) == 1) {
 
         cycles++;
 
@@ -794,7 +794,7 @@ u8 CPU6502::BCS() {
 }
 
 u8 CPU6502::BEQ(){
-    if (getFlag(Z) == 0) {
+    if (getFlag(CPU6502::FLAGS::Z) == 0) {
 
         cycles++;
 
@@ -814,7 +814,7 @@ u8 CPU6502::BEQ(){
 }
 
 u8 CPU6502::BMI(){
-    if (getFlag(N) == 1) {
+    if (getFlag(CPU6502::FLAGS::N) == 1) {
 
         cycles++;
 
@@ -834,7 +834,7 @@ u8 CPU6502::BMI(){
 }
 
 u8 CPU6502::BNE(){
-    if (getFlag(Z) == 0) {
+    if (getFlag(CPU6502::FLAGS::Z) == 0) {
 
         cycles++;
 
@@ -854,7 +854,7 @@ u8 CPU6502::BNE(){
 }
 
 u8 CPU6502::BPL(){
-    if (getFlag(N) == 0) {
+    if (getFlag(CPU6502::FLAGS::N) == 0) {
 
         cycles++;
 
@@ -874,7 +874,7 @@ u8 CPU6502::BPL(){
 }
 
 u8 CPU6502::BVC(){
-    if (getFlag(V) == 0) {
+    if (getFlag(CPU6502::FLAGS::V) == 0) {
 
         cycles++;
 
@@ -894,7 +894,7 @@ u8 CPU6502::BVC(){
 }
 
 u8 CPU6502::BVS(){
-    if (getFlag(V) == 1) {
+    if (getFlag(CPU6502::FLAGS::V) == 1) {
 
         cycles++;
 
@@ -915,37 +915,37 @@ u8 CPU6502::BVS(){
 
 // Status Flag Changes - 7
 u8 CPU6502::CLC(){
-    setFlag(C, 0);
+    setFlag(CPU6502::FLAGS::C, 0);
     return 0;
 }
 
 u8 CPU6502::CLD(){
-    setFlag(D, 0);
+    setFlag(CPU6502::FLAGS::D, 0);
     return 0;
 }
 
 u8 CPU6502::CLI(){
-    setFlag(I, 0);
+    setFlag(CPU6502::FLAGS::I, 0);
     return 0;
 }
 
 u8 CPU6502::CLV(){
-    setFlag(V, 0);
+    setFlag(CPU6502::FLAGS::V, 0);
     return 0;
 }
 
 u8 CPU6502::SEC(){
-    setFlag(C, 1);
+    setFlag(CPU6502::FLAGS::C, 1);
     return 0;
 }
 
 u8 CPU6502::SED(){
-    setFlag(D, 1);
+    setFlag(CPU6502::FLAGS::D, 1);
     return 0;
 }
 
 u8 CPU6502::SEI(){
-    setFlag(I, 1);
+    setFlag(CPU6502::FLAGS::I, 1);
     return 0;
 }
 
@@ -955,7 +955,7 @@ u8 CPU6502::BRK(){
     
     PC++;
 
-    setFlag(I, 1);
+    setFlag(CPU6502::FLAGS::I, 1);
 
     write(0x0100 + SP, (PC >> 8) & 0x00FF);
     SP--;
@@ -963,10 +963,10 @@ u8 CPU6502::BRK(){
     write(0x0100 + SP, PC & 0x00FF);
     SP--;
 
-    setFlag(B, 0);
+    setFlag(CPU6502::FLAGS::B, 0);
     write(0x0100 + SP, status);
     SP--;
-    setFlag(B, 1);
+    setFlag(CPU6502::FLAGS::B, 1);
 
     u16 lo = read(0xFFFE + 0);
     u16 hi = read(0xFFFE + 1);
@@ -1001,8 +1001,8 @@ u8 CPU6502::RTI(){
     SP++;
     status = read(0x0100 + SP);
     
-    setFlag(B, 1);
-    setFlag(U, 0);
+    setFlag(CPU6502::FLAGS::B, 1);
+    setFlag(CPU6502::FLAGS::U, 0);
 
     SP++;
     PC = read(0x0100 + SP);

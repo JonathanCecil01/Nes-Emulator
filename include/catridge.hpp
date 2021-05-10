@@ -12,9 +12,9 @@ private:
 	std::vector<u8> PRGMEM;
 	std::vector<u8> CHRMEM;
 
-	u8 mapperID;
-	u8 noPRGbanks;
-	u8 noCHRbanks;
+	u8 mapperID = 0;
+	u8 noPRGbanks = 0;
+	u8 noCHRbanks = 0;
 
 	std::shared_ptr<Mapper> mapper;
 
@@ -30,6 +30,20 @@ public:
 	// Connecting Catridge to the PPU Bus
 	bool PPUWrite(u16 addr, u8 data);
 	bool PPURead(u16 addr, u8 &data);
+
+public:
+	bool ImageValid();
+
+	enum MIRROR
+	{
+		HORIZONTAL,
+		VERTICAL,
+		ONESCREEN_LO,
+		ONESCREEN_HI,
+	} mirror = HORIZONTAL;
+
+private:
+	bool bImageValid = false;
 
 };
 

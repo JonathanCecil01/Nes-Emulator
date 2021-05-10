@@ -3,18 +3,27 @@
 
 #include <bus.hpp>
 #include <cpu6502.hpp>
+#include <catridge.hpp>
 
 #define OLC_PGE_APPLICATION
 #include <olc/olcPixelGameEngine.h>
 
 
 
-class Demo_olc6502 : public olc::PixelGameEngine
+class Demo_olc2C02 : public olc::PixelGameEngine
 {
 public:
-	Demo_olc6502() { sAppName = "6502 Demonstration"; }
+	Demo_olc2C02() { sAppName = "olc2C02 Demonstration"; }
 
+private:
+	// The NES
 	Bus nes;
+	std::shared_ptr<Catridge> cart;
+	bool bEmulationRun = false;
+	float fResidualTime = 0.0f;
+
+private:
+	// Support Utilities
 	std::map<uint16_t, std::string> mapAsm;
 
 	std::string hex(uint32_t n, uint8_t d)
@@ -44,20 +53,20 @@ public:
 	void DrawCpu(int x, int y)
 	{
 		std::string status = "STATUS: ";
-		DrawString(x , y , "STATUS:", olc::WHITE);
-		DrawString(x  + 64, y, "N", nes.cpu.status & CPU6502::N ? olc::GREEN : olc::RED);
-		DrawString(x  + 80, y , "V", nes.cpu.status & CPU6502::V ? olc::GREEN : olc::RED);
-		DrawString(x  + 96, y , "-", nes.cpu.status & CPU6502::U ? olc::GREEN : olc::RED);
-		DrawString(x  + 112, y , "B", nes.cpu.status & CPU6502::B ? olc::GREEN : olc::RED);
-		DrawString(x  + 128, y , "D", nes.cpu.status & CPU6502::D ? olc::GREEN : olc::RED);
-		DrawString(x  + 144, y , "I", nes.cpu.status & CPU6502::I ? olc::GREEN : olc::RED);
-		DrawString(x  + 160, y , "Z", nes.cpu.status & CPU6502::Z ? olc::GREEN : olc::RED);
-		DrawString(x  + 178, y , "C", nes.cpu.status & CPU6502::C ? olc::GREEN : olc::RED);
-		DrawString(x , y + 10, "PC: $" + hex(nes.cpu.PC, 4));
-		DrawString(x , y + 20, "A: $" +  hex(nes.cpu.a, 2) + "  [" + std::to_string(nes.cpu.a) + "]");
-		DrawString(x , y + 30, "X: $" +  hex(nes.cpu.x, 2) + "  [" + std::to_string(nes.cpu.x) + "]");
-		DrawString(x , y + 40, "Y: $" +  hex(nes.cpu.y, 2) + "  [" + std::to_string(nes.cpu.y) + "]");
-		DrawString(x , y + 50, "Stack P: $" + hex(nes.cpu.SP, 4));
+		DrawString(x, y, "STATUS:", olc::WHITE);
+		DrawString(x + 64, y, "N", nes.cpu.status & (int)CPU6502::FLAGS::N ? olc::GREEN : olc::RED);
+		DrawString(x + 80, y, "V", nes.cpu.status & (int)CPU6502::FLAGS::V ? olc::GREEN : olc::RED);
+		DrawString(x + 96, y, "-", nes.cpu.status & (int)CPU6502::FLAGS::U ? olc::GREEN : olc::RED);
+		DrawString(x + 112, y, "B", nes.cpu.status & (int)CPU6502::FLAGS::B ? olc::GREEN : olc::RED);
+		DrawString(x + 128, y, "D", nes.cpu.status & (int)CPU6502::FLAGS::D ? olc::GREEN : olc::RED);
+		DrawString(x + 144, y, "I", nes.cpu.status & (int)CPU6502::FLAGS::I ? olc::GREEN : olc::RED);
+		DrawString(x + 160, y, "Z", nes.cpu.status & (int)CPU6502::FLAGS::Z ? olc::GREEN : olc::RED);
+		DrawString(x + 178, y, "C", nes.cpu.status & (int)CPU6502::FLAGS::C ? olc::GREEN : olc::RED);
+		DrawString(x, y + 10, "PC: $" + hex(nes.cpu.PC, 4));
+		DrawString(x, y + 20, "A: $" + hex(nes.cpu.a, 2) + "  [" + std::to_string(nes.cpu.a) + "]");
+		DrawString(x, y + 30, "X: $" + hex(nes.cpu.x, 2) + "  [" + std::to_string(nes.cpu.x) + "]");
+		DrawString(x, y + 40, "Y: $" + hex(nes.cpu.y, 2) + "  [" + std::to_string(nes.cpu.y) + "]");
+		DrawString(x, y + 50, "Stack P: $" + hex(nes.cpu.SP, 4));
 	}
 
 	void DrawCode(int x, int y, int nLines)
@@ -94,48 +103,19 @@ public:
 
 	bool OnUserCreate()
 	{
-		// Load Program (assembled at https://www.masswerk.at/6502/assembler.html)
-		/*
-			*=$8000
-			LDX #10
-			STX $0000
-			LDX #3
-			STX $0001
-			LDY $0000
-			LDA #0
-			CLC
-			loop
-			ADC $0001
-			DEY
-			BNE loop
-			STA $0002
-			NOP
-			NOP
-			NOP
-		*/
-		
-		// Convert hex string into bytes for RAM
-		std::stringstream ss;
-		ss << "A2 0A 8E 00 00 A2 03 8E 01 00 AC 00 00 A9 00 18 6D 01 00 88 D0 FA 8D 02 00 EA EA EA";
-		uint16_t nOffset = 0x8000;
-		while (!ss.eof())
-		{
-			std::string b;
-			ss >> b;
-			nes.CPURam[nOffset++] = (uint8_t)std::stoul(b, nullptr, 16);
-		}
+		// Load the cartridge
+		cart = std::make_shared<Catridge>("nestest.nes");
+		if (!cart->ImageValid())
+			return false;
 
-		// Set Reset Vector
-		nes.CPURam[0xFFFC] = 0x00;
-		nes.CPURam[0xFFFD] = 0x80;
+		// Insert into NES
+		nes.insertCatridge(cart);
 
-		// Dont forget to set IRQ and NMI vectors if you want to play with those
-				
 		// Extract dissassembly
 		mapAsm = nes.cpu.disassemble(0x0000, 0xFFFF);
 
-		// Reset
-		nes.cpu.reset();
+		// Reset NES
+		nes.reset();
 		return true;
 	}
 
@@ -144,33 +124,51 @@ public:
 		Clear(olc::DARK_BLUE);
 
 
-		if (GetKey(olc::Key::SPACE).bPressed)
+
+		if (bEmulationRun)
 		{
-			do
+			if (fResidualTime > 0.0f)
+				fResidualTime -= fElapsedTime;
+			else
 			{
-				nes.cpu.clock();
-			} 
-			while (!nes.cpu.complete());
+				fResidualTime += (1.0f / 60.0f) - fElapsedTime;
+				do { nes.clock(); } while (!nes.ppu.frame_complete);
+				nes.ppu.frame_complete = false;
+			}
+		}
+		else
+		{
+			// Emulate code step-by-step
+			if (GetKey(olc::Key::C).bPressed)
+			{
+				// Clock enough times to execute a whole CPU instruction
+				do { nes.clock(); } while (!nes.cpu.complete());
+				// CPU clock runs slower than system clock, so it may be
+				// complete for additional system clock cycles. Drain
+				// those out
+				do { nes.clock(); } while (nes.cpu.complete());
+			}
+
+			// Emulate one whole frame
+			if (GetKey(olc::Key::F).bPressed)
+			{
+				// Clock enough times to draw a single frame
+				do { nes.clock(); } while (!nes.ppu.frame_complete);
+				// Use residual clock cycles to complete current instruction
+				do { nes.clock(); } while (!nes.cpu.complete());
+				// Reset frame completion flag
+				nes.ppu.frame_complete = false;
+			}
 		}
 
-		if (GetKey(olc::Key::R).bPressed)
-			nes.cpu.reset();
 
-		if (GetKey(olc::Key::I).bPressed)
-			nes.cpu.irq();
+		if (GetKey(olc::Key::SPACE).bPressed) bEmulationRun = !bEmulationRun;
+		if (GetKey(olc::Key::R).bPressed) nes.reset();
 
-		if (GetKey(olc::Key::N).bPressed)
-			nes.cpu.nmi();
+		DrawCpu(516, 2);
+		DrawCode(516, 72, 26);
 
-		// Draw Ram Page 0x00		
-		DrawRam(2, 2, 0x0000, 16, 16);
-		DrawRam(2, 182, 0x8000, 16, 16);
-		DrawCpu(448, 2);
-		DrawCode(448, 72, 26);
-
-
-		DrawString(10, 370, "SPACE = Step Instruction    R = RESET    I = IRQ    N = NMI");
-
+		DrawSprite(0, 0, &nes.ppu.GetScreen(), 2);
 		return true;
 	}
 };
@@ -181,8 +179,8 @@ public:
 
 int main()
 {
-	Demo_olc6502 demo;
-	demo.Construct(680, 480, 2, 2);
+	Demo_olc2C02 demo;
+	demo.Construct(780, 480, 2, 2);
 	demo.Start();
 	return 0;
 }

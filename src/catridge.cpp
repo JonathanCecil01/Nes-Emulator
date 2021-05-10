@@ -2,6 +2,7 @@
 
 Catridge::Catridge()
 {
+
 }
 
 Catridge::Catridge(const std::string& fileName)
@@ -20,6 +21,8 @@ Catridge::Catridge(const std::string& fileName)
 		char unused[5];
 
 	}header;
+
+	bImageValid = false;
 
 	std::ifstream ifs;
 	ifs.open(fileName, std::ifstream::binary);
@@ -63,6 +66,8 @@ Catridge::Catridge(const std::string& fileName)
 
 		}
 
+		bImageValid = true;
+
 		ifs.close();
 	}
 
@@ -71,6 +76,11 @@ Catridge::Catridge(const std::string& fileName)
 
 Catridge::~Catridge()
 {
+}
+
+bool Catridge::ImageValid()
+{
+	return bImageValid;
 }
 
 bool Catridge::CPUWrite(u16 addr, u8 data)

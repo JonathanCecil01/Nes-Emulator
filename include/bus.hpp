@@ -17,8 +17,8 @@ public:
     // devices
     CPU6502 cpu; // CPU
     PPU2C02 ppu; // PPU
-    std::array<u8, 2 * 1024> CPURam; // RAM
-    std::shared_ptr<Catridge> cart;
+    u8 CPURam[2 * 1024]; // RAM
+    std::shared_ptr<Catridge> cart; // Catridge
 
     void CPUWrite(u16 addr, u8 data);
     u8 CPURead(u16 addr, bool readOnly = false);
@@ -29,7 +29,7 @@ public:
     void clock();
 
 private:
-    int noSystemTicks;
+    int noSystemTicks = 0;
 
 };
 
